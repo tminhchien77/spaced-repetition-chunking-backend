@@ -11,7 +11,14 @@ class ChunkRepository:
 
     def get_due_review_chunks(self, conn, user_id: int, limit: int = 50) -> List[Chunk]:
         sql = """
-            SELECT *
+            SELECT
+            tmp_chunk.chunk_id,
+                tmp_chunk.chunk,
+                tmp_chunk.frequency,
+                md_chunk_syntagm.keyword,
+                md_chunk_syntagm.syntagmid,
+                md_syntagm.syntagm_name,
+                md_syntagm.target_part_of_speech
             FROM
             (
                 SELECT
@@ -28,8 +35,11 @@ class ChunkRepository:
                     AND app_user_chunk.next_review_at <= NOW()
                 ORDER BY next_review_at
                 LIMIT %s
-            ) tmp
-            ORDER BY RANDOM();
+            ) tmp_chunk
+            JOIN masterdata.md_chunk_syntagm
+                ON md_chunk_syntagm.chunk_id = tmp_chunk.chunk_id
+            JOIN masterdata.md_syntagm
+                ON md_syntagm.syntagm_id = md_chunk_syntagm.syntagmid
         """
 
         with conn.cursor() as cursor:
@@ -40,25 +50,35 @@ class ChunkRepository:
 
     def get_unseen_chunks(self, conn, user_id: int, limit: int = 50) -> List[Chunk]:
         sql = """
-            SELECT *
+            SELECT
+                tmp_chunk.chunk_id,
+                tmp_chunk.chunk,
+                tmp_chunk.frequency,
+                md_chunk_syntagm.keyword,
+                md_chunk_syntagm.syntagmid,
+                md_syntagm.syntagm_name,
+                md_syntagm.target_part_of_speech
             FROM
-            (
-                SELECT
-                    md_chunk.chunk_id,
-                    md_chunk.chunk,
-                    md_chunk.frequency
-                FROM
-                    masterdata.md_chunk
-                    LEFT JOIN application.app_user_chunk
-                        ON app_user_chunk.chunk_id = md_chunk.chunk_id
-                        AND app_user_chunk.user_id = %s
-                WHERE
-                    md_chunk.isdeleted = FALSE
-                    AND app_user_chunk.user_chunk_id IS NULL
-                ORDER BY md_chunk.frequency DESC
-                LIMIT %s
-            ) tmp
-            ORDER BY RANDOM()
+                (
+                    SELECT
+                            md_chunk.chunk_id,
+                            md_chunk.chunk,
+                            md_chunk.frequency
+                    FROM
+                            masterdata.md_chunk
+                            LEFT JOIN application.app_user_chunk
+                                    ON app_user_chunk.chunk_id = md_chunk.chunk_id
+                                    AND app_user_chunk.user_id = %s
+                    WHERE
+                            md_chunk.isdeleted = FALSE
+                            AND app_user_chunk.user_chunk_id IS NULL
+                    ORDER BY md_chunk.frequency DESC
+                    LIMIT %s
+            ) tmp_chunk
+            JOIN masterdata.md_chunk_syntagm
+                ON md_chunk_syntagm.chunk_id = tmp_chunk.chunk_id
+            JOIN masterdata.md_syntagm
+                ON md_syntagm.syntagm_id = md_chunk_syntagm.syntagmid
         """
 
         with conn.cursor() as cursor:

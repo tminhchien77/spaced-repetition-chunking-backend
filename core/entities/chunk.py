@@ -7,6 +7,10 @@ class Chunk:
     chunk_id: int
     chunk: str
     frequency: int
+    keyword: str
+    syntagmid: int
+    syntagm_name: str
+    target_part_of_speech: str
     next_review_at: datetime | None = None
 
     @property
