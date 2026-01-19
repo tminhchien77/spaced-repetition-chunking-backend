@@ -1,9 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes.chunk_routes import router
-from dotenv import load_dotenv
-
-load_dotenv()
 app = FastAPI()
 app.include_router(router)
 
