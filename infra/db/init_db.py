@@ -2,7 +2,11 @@ from psycopg2 import connect
 import os
 from dotenv import load_dotenv
 import csv
+from pathlib import Path
 load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = BASE_DIR / 'data'
 
 def create_schema(database_url=None):
     conn = connect(database_url)
@@ -86,7 +90,7 @@ def init_data(database_url=None):
     conn = connect(database_url)
     cursor = conn.cursor()
 
-    with open('../../data/md_chunk.csv', 'r') as chunk_file:
+    with open(DATA_DIR / 'md_chunk.csv', 'r') as chunk_file:
         reader = csv.DictReader(chunk_file)
         chunks = list(reader)
 
@@ -96,7 +100,7 @@ def init_data(database_url=None):
         ON CONFLICT (chunk_id) DO NOTHING;
         """, chunks)
 
-    with open('../../data/md_chunk_syntagm.csv', 'r') as chunk_syntagm_file:
+    with open(DATA_DIR / 'md_chunk_syntagm.csv', 'r') as chunk_syntagm_file:
         reader = csv.DictReader(chunk_syntagm_file)
         chunks = list(reader)
 
@@ -106,7 +110,7 @@ def init_data(database_url=None):
         ON CONFLICT (chunk_syntagm_id) DO NOTHING;
         """, chunks)
 
-    with open('../../data/md_syntagm.csv', 'r') as syntagm_file:
+    with open(DATA_DIR / 'md_syntagm.csv', 'r') as syntagm_file:
         reader = csv.DictReader(syntagm_file)
         chunks = list(reader)
 
@@ -124,6 +128,8 @@ def init_db():
     DATABASE_URL = os.getenv("DATABASE_URL")
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL is not set")
+
+    print(f"Initializing database at {DATABASE_URL}...")
 
     create_schema(DATABASE_URL)
     init_data(DATABASE_URL)
