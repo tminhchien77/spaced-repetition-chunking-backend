@@ -4,12 +4,8 @@ from dotenv import load_dotenv
 import csv
 load_dotenv()
 
-def init_db():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL is not set")
-
-    conn = connect(DATABASE_URL)
+def create_schema(database_url=None):
+    conn = connect(database_url)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -82,6 +78,13 @@ def init_db():
     );
     """)
 
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def init_data(database_url=None):
+    conn = connect(database_url)
+    cursor = conn.cursor()
 
     with open('../../data/md_chunk.csv', 'r') as chunk_file:
         reader = csv.DictReader(chunk_file)
@@ -116,3 +119,11 @@ def init_db():
     conn.commit()
     cursor.close()
     conn.close()
+
+def init_db():
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is not set")
+
+    create_schema(DATABASE_URL)
+    init_data(DATABASE_URL)
