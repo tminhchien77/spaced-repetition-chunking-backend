@@ -41,8 +41,10 @@ pool = SimpleConnectionPool(
 
 def get_connection():
     conn = pool.getconn()
-    conn.autocommit = True
-    return conn
+    try:
+        yield conn
+    finally:
+        pool.putconn(conn)
 
 def close_connection(conn):
     pool.putconn(conn)
