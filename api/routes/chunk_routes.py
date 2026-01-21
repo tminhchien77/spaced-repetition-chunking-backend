@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from infra.db.connection import get_connection, close_connection
+from infra.db.connection import get_connection
 from core.repositories.chunk_repository import ChunkRepository
 from core.services.chunk_service import ChunkService
 from core.services.review_service import ReviewService
@@ -17,13 +17,15 @@ review_service = ReviewService(repo)
 @router.get("/chunks")
 def get_chunks(conn = Depends(get_connection)):
     # conn = get_connection()
-    try:
-        # repo = ChunkRepository(conn)
-        # service = ChunkService(repo)
-        chunks = chunk_service.get_chunks_to_learn(conn, user_id=1)
-        return [c.__dict__ for c in chunks]
-    finally:
-        close_connection(conn)
+    # try:
+    #     # repo = ChunkRepository(conn)
+    #     # service = ChunkService(repo)
+    #     chunks = chunk_service.get_chunks_to_learn(conn, user_id=1)
+    #     return [c.__dict__ for c in chunks]
+    # finally:
+    #     close_connection(conn)
+    chunks = chunk_service.get_chunks_to_learn(conn, user_id=1)
+    return [c.__dict__ for c in chunks]
 
 
 @router.post("/chunks/{chunk_id}/review")
